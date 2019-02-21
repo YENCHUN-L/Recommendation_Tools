@@ -69,18 +69,26 @@ New_user_artists_matrix <- data.matrix(New_user_artists_wide)
 ##split the data into train and test
 nrow(New_user_artists_matrix) 
 New_user_artists_matrix[is.na(New_user_artists_matrix)] <- 0
-# for the whole matrix it takes about 4 secs for each test_data element
-# total time to compute = 567 users x 4 secs/user = 40 mins
-train_data <- New_user_artists_matrix[1:1325,]
-test_data <- New_user_artists_matrix[1326:1892,]
+
+# split into 70/30, takes about 40 mins to run
+set.seed(2) # Set a seed to have the same subsets every time 
+# Define proportion to be in training set 
+p <- 0.7
+# Define observations to be in training set
+training_locations <- sample(floor(p*nrow(New_user_artists_matrix)))
+train_data <- New_user_artists_matrix[training_locations,]
+test_data <- New_user_artists_matrix[-training_locations,]
 
 ### test function with small chunk of dataset
-### this small chunk takes about 4 mins to run
-train_data <- New_user_artists_matrix[1:1325,]
-test_data <- New_user_artists_matrix[1326:1380,]
-NN = 3
-N = 10
-onlyNew=TRUE
+### this small chunk takes about 7 mins to run
+p <- 0.95
+# Define observations to be in training set
+training_locations <- sample(floor(p*nrow(New_user_artists_matrix)))
+train_data <- New_user_artists_matrix[training_locations,]
+test_data <- New_user_artists_matrix[-training_locations,]
+# NN = 3
+# N = 10
+# onlyNew=TRUE
 
 ##1.Using a function
 
@@ -170,7 +178,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
 ######Check for results using the  function
 
-ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=FALSE)
+ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=TRUE)
 
 prediction <- as.data.frame(ResultsIBCF$prediction)
 
@@ -178,4 +186,9 @@ TopN <- as.data.frame(ResultsIBCF$topN)
 
 
 
-
+###### Use recommenderlab
+# recom <- Recommender(train, method = "UBCF")
+# pred <- predict(test, test, n = 10)
+# 
+# getList(pred)
+# pred@ratings
