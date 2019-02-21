@@ -1,11 +1,11 @@
 ##Load packages
-install.packages("dplyr")
+# install.packages("dplyr")
 library(dplyr)
 library(e1071)
-install.packages("tidyr")
+# install.packages("tidyr")
 library(tidyr)
 
-install.packages("recommenderlab")
+# install.packages("recommenderlab")
 library(recommenderlab)
 
 ###Set the working directory
@@ -178,7 +178,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
 ######Check for results using the  function
 
-ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=TRUE)
+ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=FALSE) # onlyNew = TRUE
 
 prediction <- as.data.frame(ResultsIBCF$prediction)
 
