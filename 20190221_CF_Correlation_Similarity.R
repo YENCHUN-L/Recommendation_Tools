@@ -72,11 +72,15 @@ New_user_artists_matrix[is.na(New_user_artists_matrix)] <- 0
 train_data <- New_user_artists_matrix[1:1325,]
 test_data <- New_user_artists_matrix[1326:1892,]
 
+### test function with small chunk of dataset
+train_data <- New_user_artists_matrix[1:1325,]
+test_data <- New_user_artists_matrix[1326:1380,]
+
 ##1.Using a function
 
 UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
-  ptm <- proc.time()
+  
 ### similarity ###
 #Initialize an empty matrix
   
@@ -84,7 +88,9 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
   row.names(train_data) <- paste0('u',train_data[,1])
   similarity_matrix <- matrix(, nrow = nrow(test_data), ncol = nrow(train_data), 
                               dimnames = list(rownames(test_data), rownames(train_data)))
-  i<-j<-1
+# for the whole matrix it takes about 4 secs for each test_data element
+# total time to compute = 567 users x 4 secs/user = 37 mins
+  ptm <- proc.time()
   for (i in 1:nrow(test_data)){
     for (j in 1:nrow(train_data)){
         r_xi <- test_data[i,]
@@ -94,6 +100,9 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
         sim_xy <- sum((r_xi-r_xbar)*(r_yi-r_ybar), na.rm=TRUE)/(sqrt(sum((r_xi-r_xbar)^2)) * sum((r_yi-r_ybar)^2))
         similarity_matrix[i, j] <- sim_xy
     }
+    Time <- (proc.time() - ptm)
+    print(i)
+    print(Time)  
   }
   print("similarity calculation done")
   
