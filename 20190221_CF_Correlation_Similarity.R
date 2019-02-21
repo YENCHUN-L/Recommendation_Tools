@@ -95,12 +95,14 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
                               dimnames = list(rownames(test_data), rownames(train_data)))
 
   ptm <- proc.time()
+### pearson correlation calculation matrix
   for (i in 1:nrow(test_data)){
     for (j in 1:nrow(train_data)){
         r_xi <- test_data[i,]
         r_yi <- train_data[j,]
         r_xbar <- mean(test_data[i, ], na.rm=TRUE)
         r_ybar <- mean(train_data[j, ], na.rm=TRUE)
+        
         sim_xy <- sum((r_xi-r_xbar)*(r_yi-r_ybar), na.rm=TRUE)/(sqrt(sum((r_xi-r_xbar)^2)) * sum((r_yi-r_ybar)^2))
         similarity_matrix[i, j] <- sim_xy
     }
