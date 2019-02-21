@@ -104,21 +104,6 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
   t[2]/(t[1]+t[2])
   
   
-  res <- cor(New_user_artists)
-  round(res, 2)
-  
-  # Calculate cosine similarity between all user pairs
-  for(i in 1:nrow(JesterMatrix)) {
-    for(j in 1:nrow(JesterMatrix)) {
-      if (i < j){
-        sim <- sum(JesterMatrix[i, ]*JesterMatrix[j,], na.rm=TRUE)/sqrt(sum(JesterMatrix[i, ]^2, na.rm=TRUE) * sum(JesterMatrix[j, ]^2, na.rm=TRUE))
-        similarity_matrix_THW[i,j] <- sim
-        similarity_matrix_THW[j,i] <- sim
-      }
-    }
-  }
-  print("similarity calculation done")
-  
   
   ### Nearest Neighbors ###
   similarity_matrix_NN <- similarity_matrix
