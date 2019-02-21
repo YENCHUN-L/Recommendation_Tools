@@ -70,12 +70,12 @@ New_user_artists_matrix <- data.matrix(New_user_artists_wide)
 nrow(New_user_artists_matrix) 
 New_user_artists_matrix[is.na(New_user_artists_matrix)] <- 0
 # for the whole matrix it takes about 4 secs for each test_data element
-# total time to compute = 567 users x 4 secs/user = 37 mins
+# total time to compute = 567 users x 4 secs/user = 40 mins
 train_data <- New_user_artists_matrix[1:1325,]
 test_data <- New_user_artists_matrix[1326:1892,]
 
 ### test function with small chunk of dataset
-### this small chunk takes about 3 mins to run
+### this small chunk takes about 4 mins to run
 train_data <- New_user_artists_matrix[1:1325,]
 test_data <- New_user_artists_matrix[1326:1380,]
 NN = 3
@@ -170,7 +170,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
 ######Check for results using the  function
 
-ResultsIBCF <- UserBasedCF(train_data, test_data, 5, NN= 10, onlyNew=TRUE)
+ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=FALSE)
 
 prediction <- as.data.frame(ResultsIBCF$prediction)
 
