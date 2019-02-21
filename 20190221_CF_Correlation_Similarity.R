@@ -50,7 +50,7 @@ skewness(user_artists$weight)
 ####Transform data to fix the skewness using log transformation
 New_user_artists <- user_artists
 New_user_artists$weight <- as.numeric(New_user_artists$weight)
-New_user_artists$trans_weight<-log10( 10 *New_user_artists$weight) 
+New_user_artists$trans_weight<-log10(10*New_user_artists$weight) 
 hist(New_user_artists$trans_weight)
 
 str(New_user_artists)
@@ -60,35 +60,51 @@ str(New_user_artists)
 summary(New_user_artists$trans_weight)
 
 ###Convert the dataframe into a wide matrix
-New_user_artists <- New_user_artists[,c(1,2,4)]
 names(New_user_artists)
+New_user_artists <- New_user_artists[,c(1,2,4)]
+New_user_artists$userID<- sprintf("%04d",New_user_artists$userID) 
+New_user_artists$userID <-paste0('u',New_user_artists$userID)
+New_user_artists$artistID<- sprintf("%05d",New_user_artists$artistID)
+New_user_artists$artistID <-paste0('a',New_user_artists$artistID)
+
 New_user_artists_wide <- spread(New_user_artists, key = artistID, value = trans_weight )
+New_user_artists_wide[1:10,1:10]
+
 New_user_artists_matrix <- data.matrix(New_user_artists_wide)
+row.names(New_user_artists_matrix) <- New_user_artists_matrix[,1]
+#drop first column
+New_user_artists_matrix<- New_user_artists_matrix[,-1]
+#add row names
+row.names(New_user_artists_matrix) <- New_user_artists_wide[,1]
+New_user_artists_matrix[1:10,1:10]
 
 ####Computing pearson correlation function
 ##split the data into train and test
-nrow(New_user_artists_matrix) 
+num_rows <- nrow(New_user_artists_matrix) 
 New_user_artists_matrix[is.na(New_user_artists_matrix)] <- 0
 
 # split into 70/30, takes about 40 mins to run
-set.seed(2) # Set a seed to have the same subsets every time 
+set.seed(123) # Set a seed to have the same subsets every time 
 # Define proportion to be in training set 
 p <- 0.7
 # Define observations to be in training set
-training_locations <- sample(floor(p*nrow(New_user_artists_matrix)))
+training_locations <- sort(sample(num_rows,floor(p*num_rows)))
 train_data <- New_user_artists_matrix[training_locations,]
 test_data <- New_user_artists_matrix[-training_locations,]
 
-### test function with small chunk of dataset
-### this small chunk takes about 7 mins to run
-p <- 0.95
+# ### test function with small chunk of dataset
+# ### this small chunk takes about 4 mins to run
+p <- 0.99
 # Define observations to be in training set
-training_locations <- sample(floor(p*nrow(New_user_artists_matrix)))
+training_locations <- sort(sample(num_rows,floor(p*num_rows)))
 train_data <- New_user_artists_matrix[training_locations,]
 test_data <- New_user_artists_matrix[-training_locations,]
-# NN = 3
-# N = 10
-# onlyNew=TRUE
+
+rownames(train_data)
+rownames(test_data)
+NN = 3
+N = 10
+onlyNew=TRUE
 
 ##1.Using a function
 
@@ -97,8 +113,8 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 ### similarity ###
 #Initialize an empty matrix
   
-  row.names(test_data) <- paste0('u',test_data[,1])
-  row.names(train_data) <- paste0('u',train_data[,1])
+  # row.names(test_data) <- paste0('u',test_data[,1])
+  # row.names(train_data) <- paste0('u',train_data[,1])
   similarity_matrix <- matrix(, nrow = nrow(test_data), ncol = nrow(train_data), 
                               dimnames = list(rownames(test_data), rownames(train_data)))
 
@@ -120,7 +136,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
   }
   print("similarity calculation done")
   
-  
+
   ### Nearest Neighbors ###
   similarity_matrix_NN <- similarity_matrix
   
@@ -131,7 +147,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
   
   print("Nearest Neighbor selection done")
   ### Prediction ###
-  # Prepare
+  # Prepare (intialize empty matrix)
   prediction <- matrix(, nrow=nrow(test_data), ncol(test_data), 
                        dimnames=list(rownames(test_data), colnames(test_data)))
   prediction2 <- matrix(, nrow=nrow(test_data), ncol(test_data), 
@@ -139,6 +155,9 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
   
   TopN <- matrix(, nrow=nrow(test_data), ncol=N, dimnames=list(rownames(test_data)))
   ### Numerator ###
+  
+  u = rownames(test_data)[1]
+  
   for (u in rownames(test_data)){
     similarity_vector <- na.omit(similarity_matrix_NN[u, ])
     
@@ -158,7 +177,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
     
     
     if (onlyNew == TRUE){
-      unseen <- names(test_data[u, is.na(test_data[u,])])
+      unseen <- names(test_data[u, test_data[u,]==0])
       prediction2[u, ] <- ifelse(colnames(prediction) %in% unseen, prediction[u, ], NA)
     }else{
       prediction2[u, ] <- prediction[u, ]
@@ -178,12 +197,29 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
 ######Check for results using the  function
 
-ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=FALSE) # onlyNew = TRUE
+ResultsIBCF <- UserBasedCF(train_data, test_data, N = 3, NN= 10, onlyNew=TRUE) # onlyNew = TRUE
 
 prediction <- as.data.frame(ResultsIBCF$prediction)
 
+# prediction onlyNew=FALSE
+(-sort(prediction[1,]))[1:10]
+  
 TopN <- as.data.frame(ResultsIBCF$topN)
+write.csv(TopN,'TopN.csv')
 
+###### use proxy package
+# 8105.66 sec = 2.25 hrs
+# install.packages('proxy')
+# library('proxy')
+# 
+# ptm <- proc.time()
+# 
+# row.names(New_user_artists_wide) <- paste0('u',New_user_artists_wide[,1])
+# similarity_matrix_proxy <- as.matrix(simil(New_user_artists_wide, method="pearson"))
+# 
+# Time <- (proc.time() - ptm)
+# print(Time)
+# print("similarity calculation done")
 
 
 ###### Use recommenderlab
