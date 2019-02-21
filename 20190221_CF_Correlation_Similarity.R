@@ -69,18 +69,23 @@ New_user_artists_matrix <- data.matrix(New_user_artists_wide)
 ##split the data into train and test
 nrow(New_user_artists_matrix) 
 New_user_artists_matrix[is.na(New_user_artists_matrix)] <- 0
+# for the whole matrix it takes about 4 secs for each test_data element
+# total time to compute = 567 users x 4 secs/user = 37 mins
 train_data <- New_user_artists_matrix[1:1325,]
 test_data <- New_user_artists_matrix[1326:1892,]
 
 ### test function with small chunk of dataset
+### this small chunk takes about 3 mins to run
 train_data <- New_user_artists_matrix[1:1325,]
 test_data <- New_user_artists_matrix[1326:1380,]
+NN = 3
+N = 10
+onlyNew=TRUE
 
 ##1.Using a function
 
 UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
-  
 ### similarity ###
 #Initialize an empty matrix
   
@@ -88,8 +93,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
   row.names(train_data) <- paste0('u',train_data[,1])
   similarity_matrix <- matrix(, nrow = nrow(test_data), ncol = nrow(train_data), 
                               dimnames = list(rownames(test_data), rownames(train_data)))
-# for the whole matrix it takes about 4 secs for each test_data element
-# total time to compute = 567 users x 4 secs/user = 37 mins
+
   ptm <- proc.time()
   for (i in 1:nrow(test_data)){
     for (j in 1:nrow(train_data)){
@@ -105,13 +109,6 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
     print(Time)  
   }
   print("similarity calculation done")
-  
-  Time <- (proc.time() - ptm)
-  Time  
-  
-  t = table(is.na(similarity_matrix))
-  t[2]/(t[1]+t[2])
-  
   
   
   ### Nearest Neighbors ###
@@ -171,7 +168,7 @@ UserBasedCF <- function(train_data, test_data, N, NN, onlyNew=TRUE){
 
 ######Check for results using the  function
 
-ResultsIBCF <- UserBasedCF(train, test, 5, NN= 10, onlyNew=TRUE)
+ResultsIBCF <- UserBasedCF(train_data, test_data, 5, NN= 10, onlyNew=TRUE)
 
 prediction <- as.data.frame(ResultsIBCF$prediction)
 
