@@ -241,3 +241,33 @@ MAE <- function(prediction, real){
     return("MAE is done")
   }
 }
+
+
+########F1#########
+#precision = ( number of true positives ) / (number of positives predicted by us)
+#recall/true positive rate = true positives / ( True positive + False negative)
+F1Score <- function (fact, pred) {
+  TP = sum(pred %in% fact)
+  
+  if(TP == 0) {
+    return(0)
+  }
+  
+  precision <- TP/length(pred)
+  recall <- TP/length(fact)
+  
+  2 * precision * recall / (precision + recall)
+}
+
+applyF1Score <- function (df) {
+  apply(df, 1, function (x) F1Score(x["fact"], x["predicted"]))
+}
+
+#example
+df <- data.frame(order_id = c(1,2,3), 
+                 fact = c("100", "300", "350"),
+                 predicted = c("100", "100", "400"))
+
+df$f1 <- applyF1Score(df)
+
+df
